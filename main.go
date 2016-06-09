@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
 	"path"
 	"strings"
 
@@ -72,10 +73,18 @@ func main() {
 		filePath := c.PostForm("path")
 		title := c.PostForm("title")
 		_, dest := path.Split(filePath)
-		err := os.Rename(path.Clean(filePath), path.Join(cfg.MovieArchivPath, dest))
+
+		cpCmd := exec.Command("cp", "-r", filePath, path.Join(cfg.MovieArchivPath, dest))
+		err := cpCmd.Run()
 		if err != nil {
-			fmt.Printf("Failed to move dir: %s", err)
+			fmt.Printf("Failed to copy dir: %s", err)
 		}
+		rmCmd := exec.Command("rm", "-r", filePath)
+		err = rmCmd.Run()
+		if err != nil {
+			fmt.Printf("Failed to remove source dir: %s", err)
+		}
+
 		fmt.Printf("%s: %s\n", title, filePath)
 		c.JSON(200, gin.H{
 			"status": "archiving",
