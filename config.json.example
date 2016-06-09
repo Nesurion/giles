@@ -1,0 +1,8 @@
+{
+	"MovieTempPath":"/Users/nesurion/Development/giles/example/temp/movies",
+	"MovieArchivPath": "/Users/nesurion/Development/giles/example/archiv/movies",
+	"TvTempPath": "/Users/nesurion/Development/giles/example/temp/tv",
+	"TvArchivPath": "/Users/nesurion/Development/giles/example/archiv/tv",
+	"Port": "8080",
+	"Mode": "debug"
+}
