@@ -74,10 +74,12 @@ func main() {
 		title := c.PostForm("title")
 		_, dest := path.Split(filePath)
 
-		cpCmd := exec.Command("cp", "-r", filePath, path.Join(cfg.MovieArchivPath, dest))
+		cpCmd := exec.Command("cp", "-rf", filePath, path.Join(cfg.MovieArchivPath, dest))
 		err := cpCmd.Run()
 		if err != nil {
 			fmt.Printf("Failed to copy dir: %s", err)
+			c.AbortWithError(500, err)
+			return
 		}
 		rmCmd := exec.Command("rm", "-r", filePath)
 		err = rmCmd.Run()
