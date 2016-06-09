@@ -4,6 +4,6 @@ import imdb "github.com/eefret/gomdb"
 
 type Media struct {
 	Imdb     *imdb.MovieResult
-	Path     string
+	DirName  string
 	Archived bool
 }

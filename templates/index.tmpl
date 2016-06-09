@@ -24,13 +24,13 @@
 			<div class="row">
 				{{range .Movies}}
 					<div class="col-sm-3">
-							<div class="card" id={{.Path}}>
+							<div class="card" id={{.DirName}}>
 								<img class="card-img-top center-block" style="height:300px;width:200px"src={{.Imdb.Poster}} alt={{.Imdb.Title}}>
 								<div class="card-block">
     								<p class="card-title">{{.Imdb.Title}}
 									</p>
-										<button class="btn btn-sm btn-primary btn-block" type="submit" name="archiv" onclick="archivMovieRequest({{.Imdb.Title}}, {{.Path}})" {{if .Archived}} disabled {{end}}>Archiv</button>
-										<button class="btn btn-sm btn-danger btn-block" type="submit" name="delete" onclick="deleteRequest({{.Imdb.Title}}, {{.Path}})">Delete</button>
+										<button class="btn btn-sm btn-primary btn-block" type="submit" name="archiv" onclick="archivMovieRequest({{.Imdb.Title}}, {{.DirName}})" {{if .Archived}} disabled {{end}}>Archiv</button>
+										<button class="btn btn-sm btn-danger btn-block" type="submit" name="delete" onclick="deleteRequest({{.Imdb.Title}}, {{.DirName}})">Delete</button>
   								</div>
 							</div>
 					</div>
@@ -42,13 +42,13 @@
 			<div class="row">
 				{{range .TV}}
 					<div class="col-sm-3">
-							<div class="card" id={{.Path}}>
+							<div class="card" id={{.DirName}}>
 								<img class="card-img-top center-block" style="height:300px;width:200px"src={{.Imdb.Poster}} alt={{.Imdb.Title}}>
 								<div class="card-block">
 									<p class="card-title">{{.Imdb.Title}}
 									</p>
-										<button class="btn btn-sm btn-primary btn-block" type="submit" name="archiv" onclick="archivShowRequest({{.Imdb.Title}}, {{.Path}})" {{if .Archived}} disabled {{end}}>Archiv</button>
-										<button class="btn btn-sm btn-danger btn-block" type="submit" name="delete" onclick="deleteRequest({{.Imdb.Title}}, {{.Path}})">Delete</button>
+										<button class="btn btn-sm btn-primary btn-block" type="submit" name="archiv" onclick="archivShowRequest({{.Imdb.Title}}, {{.DirName}})" {{if .Archived}} disabled {{end}}>Archiv</button>
+										<button class="btn btn-sm btn-danger btn-block" type="submit" name="delete" onclick="deleteRequest({{.Imdb.Title}}, {{.DirName}})">Delete</button>
 								</div>
 							</div>
 					</div>

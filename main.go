@@ -70,28 +70,28 @@ func main() {
 	})
 
 	srv.POST("/api/archiv/movie", func(c *gin.Context) {
-		filePath := c.PostForm("path")
+		dirName := c.PostForm("dirname")
 		title := c.PostForm("title")
-		_, dest := path.Split(filePath)
 
-		dest = strings.Replace(dest, " ", "\\ ", -1)
-		dest = strings.Replace(dest, "(", "\\(", -1)
-		dest = strings.Replace(dest, ")", "\\)", -1)
-		fmt.Printf("attempting to copy %s to %s\n", filePath, path.Join(cfg.MovieArchivPath, dest))
-		cpCmd := exec.Command("cp", "-rf", filePath, path.Join(cfg.MovieArchivPath, dest))
+		dirName = strings.Replace(dirName, " ", "\\ ", -1)
+		dirName = strings.Replace(dirName, "(", "\\(", -1)
+		dirName = strings.Replace(dirName, ")", "\\)", -1)
+		src := path.Join(cfg.MovieTempPath, dirName)
+		des := path.Join(cfg.MovieArchivPath, dirName)
+		fmt.Printf("attempting to copy %s to %s\n", src, des)
+		cpCmd := exec.Command("cp", "-rf", src, des)
 		err := cpCmd.Run()
 		if err != nil {
 			fmt.Printf("Failed to copy dir: %s", err)
 			c.AbortWithError(500, err)
 			return
 		}
-		rmCmd := exec.Command("rm", "-r", filePath)
+		rmCmd := exec.Command("rm", "-r", src)
 		err = rmCmd.Run()
 		if err != nil {
 			fmt.Printf("Failed to remove source dir: %s", err)
 		}
 
-		fmt.Printf("%s: %s\n", title, filePath)
 		c.JSON(200, gin.H{
 			"status": "archiving",
 			"title":  title,
@@ -152,7 +152,7 @@ func loadMovies(sourcePath string, archiv bool) ([]*Media, error) {
 		}
 		movies = append(movies, &Media{
 			Imdb:     movie,
-			Path:     path.Join(sourcePath, f.Name()),
+			DirName:  f.Name(),
 			Archived: archiv,
 		})
 	}
@@ -179,7 +179,7 @@ func loadShows(sourcePath string, archiv bool) ([]*Media, error) {
 		}
 		shows = append(shows, &Media{
 			Imdb:     show,
-			Path:     path.Join(sourcePath, f.Name()),
+			DirName:  f.Name(),
 			Archived: archiv,
 		})
 	}
