@@ -74,9 +74,9 @@ func main() {
 		title := c.PostForm("title")
 		_, dest := path.Split(filePath)
 
-		strings.Replace(dest, " ", "\\ ", -1)
-		strings.Replace(dest, "(", "\\(", -1)
-		strings.Replace(dest, ")", "\\)", -1)
+		dest = strings.Replace(dest, " ", "\\ ", -1)
+		dest = strings.Replace(dest, "(", "\\(", -1)
+		dest = strings.Replace(dest, ")", "\\)", -1)
 		fmt.Printf("attempting to copy %s to %s\n", filePath, path.Join(cfg.MovieArchivPath, dest))
 		cpCmd := exec.Command("cp", "-rf", filePath, path.Join(cfg.MovieArchivPath, dest))
 		err := cpCmd.Run()
