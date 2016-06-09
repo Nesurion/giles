@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -12,13 +13,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const MovieTempPath string = "/Users/nesurion/Development/giles/example/temp/movies"
-const MovieArchivPath string = "/Users/nesurion/Development/giles/example/archiv/movies"
+var cfg Config
 
-const TvTempPath string = "/Users/nesurion/Development/giles/example/temp/tv"
-const TvArchivPath string = "/Users/nesurion/Development/giles/example/archiv/tv"
+func init() {
+	file, err := ioutil.ReadFile("./config.json")
+	if err != nil {
+		fmt.Printf("Failed to load config file\n")
+		os.Exit(1)
+	}
+	json.Unmarshal(file, &cfg)
+	fmt.Println("config file loaded")
+	if cfg.Mode == "release" {
+		gin.SetMode(gin.ReleaseMode)
+	}
+}
 
 func main() {
+
 	srv := gin.Default()
 	srv.LoadHTMLGlob("templates/*")
 	srv.Static("/css", "./assets/css")
@@ -26,14 +37,30 @@ func main() {
 
 	srv.GET("/", func(c *gin.Context) {
 		// load temp movies
-		movies := loadMovies(MovieTempPath, false)
+		movies, err := loadMovies(cfg.MovieTempPath, false)
+		if err != nil {
+			fmt.Printf("Failed to load temp movies\n")
+		}
 		// add archived movies
-		movies = append(movies, loadMovies(MovieArchivPath, true)...)
+		archivMovies, err := loadMovies(cfg.MovieArchivPath, true)
+		if err != nil {
+			fmt.Printf("Failed to load archiv movies\n")
+		}
+		movies = append(movies, archivMovies...)
 
 		// load temp shows
-		shows := loadShows(TvTempPath, false)
+		shows, err := loadShows(cfg.TvTempPath, false)
+		if err != nil {
+			fmt.Printf("Failed to load temp shows\n")
+			c.AbortWithError(500, err)
+		}
 		// add archived shows
-		shows = append(shows, loadShows(TvArchivPath, true)...)
+		archivShows, err := loadShows(cfg.TvArchivPath, true)
+		if err != nil {
+			fmt.Printf("Failed to load temp movies\n")
+			c.AbortWithError(500, err)
+		}
+		shows = append(shows, archivShows...)
 
 		c.HTML(http.StatusOK, "index.tmpl", gin.H{
 			"Movies": movies,
@@ -45,7 +72,7 @@ func main() {
 		filePath := c.PostForm("path")
 		title := c.PostForm("title")
 		_, dest := path.Split(filePath)
-		err := os.Rename(path.Clean(filePath), path.Join(MovieArchivPath, dest))
+		err := os.Rename(path.Clean(filePath), path.Join(cfg.MovieArchivPath, dest))
 		if err != nil {
 			fmt.Printf("Failed to move dir: %s", err)
 		}
@@ -60,7 +87,7 @@ func main() {
 		filePath := c.PostForm("path")
 		title := c.PostForm("title")
 		_, dest := path.Split(filePath)
-		err := os.Rename(path.Clean(filePath), path.Join(TvArchivPath, dest))
+		err := os.Rename(path.Clean(filePath), path.Join(cfg.TvArchivPath, dest))
 		if err != nil {
 			fmt.Printf("Failed to move dir: %s", err)
 		}
@@ -85,10 +112,10 @@ func main() {
 		})
 	})
 
-	srv.Run(":8080")
+	srv.Run(":" + cfg.Port)
 }
 
-func loadMovies(sourcePath string, archiv bool) []*Media {
+func loadMovies(sourcePath string, archiv bool) ([]*Media, error) {
 	var movies []*Media
 	files, err := ioutil.ReadDir(sourcePath)
 	if err != nil {
@@ -106,7 +133,7 @@ func loadMovies(sourcePath string, archiv bool) []*Media {
 
 		movie, err := imdb.MovieByTitle(title, year)
 		if err != nil {
-			fmt.Printf("Failed to load movie %s from imdb", f.Name())
+			fmt.Printf("Failed to load movie %s from imdb\n", f.Name())
 		}
 		movies = append(movies, &Media{
 			Imdb:     movie,
@@ -114,10 +141,10 @@ func loadMovies(sourcePath string, archiv bool) []*Media {
 			Archived: archiv,
 		})
 	}
-	return movies
+	return movies, nil
 }
 
-func loadShows(sourcePath string, archiv bool) []*Media {
+func loadShows(sourcePath string, archiv bool) ([]*Media, error) {
 	var shows []*Media
 	files, err := ioutil.ReadDir(sourcePath)
 	if err != nil {
@@ -126,7 +153,10 @@ func loadShows(sourcePath string, archiv bool) []*Media {
 	for _, f := range files {
 		res, err := imdb.Search(f.Name(), "")
 		if err != nil {
-			fmt.Printf("Failed to load show %s from imdb", f.Name())
+			fmt.Printf("Failed to load show %s from imdb\n", f.Name())
+		}
+		if len(res.Search) == 0 {
+			return nil, fmt.Errorf("failed to find show %s\n", f.Name())
 		}
 		show, err := imdb.MovieByImdbID(res.Search[0].ImdbID)
 		if err != nil {
@@ -138,5 +168,5 @@ func loadShows(sourcePath string, archiv bool) []*Media {
 			Archived: archiv,
 		})
 	}
-	return shows
+	return shows, nil
 }

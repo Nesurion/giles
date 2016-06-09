@@ -3,5 +3,5 @@ BIN=giles
 $(BIN): *.go
 	go build
 	
-run:
+run: $(BIN)
 	./giles
